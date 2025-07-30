@@ -5,7 +5,7 @@ fn check_safe(parts: Vec<&str>) -> Result<bool, Box<dyn std::error::Error>> {
     let numbers: Vec<i32> = parts.iter().map(|p| p.parse()).collect::<Result<_, _>>()?;
 
     if numbers.len() < 2 {
-        return Ok(false); // Can't determine trend with fewer than 2
+        return Ok(false);
     }
 
     let mut increasing: Option<bool> = None;
@@ -15,7 +15,7 @@ fn check_safe(parts: Vec<&str>) -> Result<bool, Box<dyn std::error::Error>> {
         let b = pair[1];
 
         if a == b {
-            return Ok(false); // No strict movement
+            return Ok(false);
         }
 
         if increasing.is_none() {
