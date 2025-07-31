@@ -1,8 +1,6 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::vec;
-
-use regex::Regex;
+use std::{usize, vec};
 
 fn get_file() -> Result<File, Box<dyn std::error::Error>> {
     let file_path = "data/puzzle_input.txt";
@@ -11,103 +9,112 @@ fn get_file() -> Result<File, Box<dyn std::error::Error>> {
     Ok(file)
 }
 
-fn check_horizontal(lines: &[String], reg: &Regex) -> Result<i32, Box<dyn std::error::Error>> {
-    let mut count = 0;
-    for line in lines {
-        for _ in reg.captures_iter(line) {
-            count += 1;
-        }
-    }
-    Ok(count)
-}
-
-fn transpose(lines: &[String]) -> Vec<String> {
-    if lines.is_empty() {
+fn find_x_mas(word: &str, word_search: &Vec<Vec<char>>) -> Vec<(usize, usize, usize, usize)> {
+    let mut matches = vec![];
+    let mut total = 0;
+    let mut temp_word: Vec<(usize, usize)> = vec![];
+    // edge cases
+    if word.len() == 0 || word_search.len() == 0 || word_search[0].len() == 0 {
         return vec![];
     }
 
-    let num_cols = lines[0].len();
-    let mut transposed = vec![String::new(); num_cols];
+    let word_chars = word.chars().collect::<Vec<char>>();
+    let word_len = word_chars.len() as isize;
+    let word_search_width = word_search[0].len() as isize;
+    let word_search_height = word_search.len() as isize;
 
-    for line in lines {
-        for (i, c) in line.chars().enumerate() {
-            transposed[i].push(c);
+    for y in 0..word_search_height {
+        for x in 0..word_search_width {
+            if word_search[y as usize][x as usize] != word_chars[0] {
+                continue;
+            }
+            let temp = word_chars[0];
+            println!("FOUND: {temp:#?}");
+            total += 1;
+            // loop through every direction that a word can go in
+            let deltas = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
+            'deltas_loop: for (dx, dy) in deltas {
+                // check if direction would not end up oob
+                let end_x = x + dx * (word_len - 1);
+                let end_y = y + dy * (word_len - 1);
+                if end_x >= word_search_width
+                    || end_y >= word_search_height
+                    || end_x < 0
+                    || end_y < 0
+                {
+                    continue;
+                }
+
+                // loop through every character in the direction
+                // and see if any of them don't match up with the word
+                for i in 0..word_len {
+                    if i == 0 {
+                        temp_word.clear();
+                    }
+                    let xprime = x + dx * i;
+                    let yprime = y + dy * i;
+                    if word_search[yprime as usize][xprime as usize] != word_chars[i as usize] {
+                        continue 'deltas_loop;
+                    }
+                    //char found saving location
+                    temp_word.push((xprime as usize, yprime as usize));
+                }
+                let (x_end, y_end) = temp_word.last().unwrap();
+
+                // word found! add to matches list
+                matches.push((x as usize, y as usize, *x_end, *y_end));
+            }
         }
     }
-
-    transposed
+    matches
 }
 
-fn check_vertical(lines: &[String], reg: &Regex) -> Result<i32, Box<dyn std::error::Error>> {
-    let columns_as_rows = transpose(lines);
-
+fn find_x(grid: &[String]) -> usize {
+    let height = grid.len();
+    let width = grid[0].len();
+    let target = "MAS";
+    let target_rev = "SAM";
     let mut count = 0;
-    for line in columns_as_rows {
-        for _ in reg.captures_iter(&line) {
-            count += 1;
+
+    for row in 0..(height - 2) {
+        for col in 0..(width - 2) {
+            let mut diagonal1 = String::new();
+            let mut diagonal2 = String::new();
+
+            for i in 0..3 {
+                let c1 = grid[row + i].chars().nth(col + i).unwrap();
+                let c2 = grid[row + i].chars().nth(col + 2 - i).unwrap();
+                diagonal1.push(c1);
+                diagonal2.push(c2);
+            }
+
+            if (diagonal1 == target || diagonal1 == target_rev)
+                && (diagonal2 == target || diagonal2 == target_rev)
+            {
+                count += 1;
+            }
         }
     }
-    Ok(count)
-}
 
-fn check_diagonal(lines: &[String], reg: &Regex) -> Result<i32, Box<dyn std::error::Error>> {
-    let mut diagonals: Vec<String> = Vec::new();
-    let rows = lines.len();
-    let cols = lines[0].len();
-    let lines = lines
-        .iter()
-        .map(|line| line.chars().collect::<Vec<char>>())
-        .collect::<Vec<Vec<char>>>();
-
-    let j = 0;
-    let mut chars: Vec<char> = Vec::new();
-    for i in 0..rows {
-        let l = lines[i][j];
-        chars.push(l);
-    }
-    diagonals.push(chars.iter().collect::<String>());
-
-    // TODO: OKAY, we can get diagonal down-right from 0,0. Now we move across row and down column
-
-    println!("DIAGONALS: {diagonals:#?}");
-    Ok(0)
+    count
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let reg = Regex::new(r"XMAS|SAMX")?;
+    let word = "MAS";
     match get_file() {
         Ok(file) => {
-            println!("Got the file");
             let buf = BufReader::new(file);
             let lines: Vec<String> = buf.lines().collect::<Result<_, _>>()?;
-            match check_horizontal(&lines, &reg) {
-                Ok(count) => {
-                    println!("HORIZONTAL COUNT: {count:#?}");
-                    match check_vertical(&lines, &reg) {
-                        Ok(count) => {
-                            println!("VERTICAL COUNT: {count:#?}");
-                            match check_diagonal(&lines, &reg) {
-                                Ok(count) => {
-                                    println!("DIAGONAL COUNT: {count:#?}");
-                                }
-                                Err(e) => {
-                                    println!("ERROR: {e:#?}");
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            println!("CHECK_VERTICAL RETURNED AN ERROR: {e:#?}");
-                        }
-                    }
-                }
-                Err(e) => {
-                    println!("ERROR: {e:#?}");
-                }
-            }
+            let grid: Vec<Vec<char>> = lines.iter().map(|l| l.chars().collect()).collect();
+            let total = find_x_mas(word, &grid);
+            println!("{total:#?}");
+            let t = find_x(&lines);
+            println!("Total X-MAS: {t:#?}");
         }
         Err(e) => {
             println!("ERROR: {e:#?}");
         }
     }
+
     Ok(())
 }
