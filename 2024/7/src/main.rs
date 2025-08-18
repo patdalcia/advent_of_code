@@ -15,7 +15,7 @@ fn count_whitespace_sequences(s: &str) -> usize {
 }
 
 fn get_input() -> Result<PuzzleType, Box<dyn Error>> {
-    let file_path = "data/puzzle_input.txt";
+    let file_path = "data/puzzle_input_test.txt";
     let file = File::open(file_path)?;
     let buf = BufReader::new(file);
     let mut keys: Vec<i64> = vec![];
