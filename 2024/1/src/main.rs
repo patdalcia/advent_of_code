@@ -1,54 +1,35 @@
-use std::cmp::{max, min};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::ops::AddAssign;
 
-// Pulls information from file, splits whitespace, sorts and saves to two vectors
-fn get_input() -> Result<(Vec<i32>, Vec<i32>), Box<dyn std::error::Error>> {
-    let file_path = "data/puzzle_input.txt";
-    let file = File::open(file_path)?;
-    let buf = BufReader::new(file);
-    let mut first_column_numbers: Vec<i32> = Vec::new();
-    let mut second_column_numbers: Vec<i32> = Vec::new();
-    for line_result in buf.lines() {
-        let line = line_result?;
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if !parts.is_empty() {
-            first_column_numbers.push(parts[0].parse()?);
-            second_column_numbers.push(parts[1].parse()?);
+fn part_one(input: &str) -> u64 {
+    let mut first_col: Vec<u64> = vec![];
+    let mut second_col: Vec<u64> = vec![];
+    input.lines().for_each(|line| {
+        let mut line_iter = line.split_whitespace();
+        if let Some(first_col_num) = line_iter.next() {
+            if let Some(second_col_num) = line_iter.next() {
+                if let Ok(first_num) = first_col_num.parse::<u64>() {
+                    if let Ok(second_num) = second_col_num.parse::<u64>() {
+                        first_col.push(first_num);
+                        second_col.push(second_num);
+                    }
+                }
+            }
         }
-    }
-    first_column_numbers.sort();
-    second_column_numbers.sort();
-
-    //let count = values.iter().filter(|x| *x == target).count();
-
-    Ok((first_column_numbers, second_column_numbers))
+    });
+    first_col.sort();
+    second_col.sort();
+    let mut answer = 0;
+    first_col.iter().enumerate().for_each(|(index, first_num)| {
+        println!("FIRST: {first_num} SECOND: {}", second_col[index]);
+        let temp = if first_num > &second_col[index] {
+            answer.add_assign(first_num - second_col[index]);
+        } else {
+            answer.add_assign(second_col[index] - first_num);
+        };
+    });
+    answer
 }
-
-fn compare_distance(first_column_numbers: Vec<i32>, second_column_numbers: Vec<i32>) {
-    let mut distance: i32 = 0;
-    let mut similarity_score: i32 = 0;
-    for i in 0..first_column_numbers.len() {
-        let first_multiplier = second_column_numbers
-            .iter()
-            .filter(|&&x| x == first_column_numbers[i])
-            .count() as i32;
-        similarity_score += first_column_numbers[i] * first_multiplier;
-
-        distance += max(first_column_numbers[i], second_column_numbers[i])
-            - min(first_column_numbers[i], second_column_numbers[i]);
-    }
-    println!("#################### DISTANCE: {distance} ###################");
-    println!("#################### SIMILARITY: {similarity_score} ###################");
-}
-//<BS>let result = max(a, b) - min(a, b);
 fn main() {
-    match get_input() {
-        Ok((first_col, second_col)) => {
-            compare_distance(first_col, second_col);
-        }
-        Err(e) => {
-            println!("ERROR {e:?}");
-        }
-    }
+    let input = include_str!("../puzzle_input_test.txt");
+    println!("ANSWER TO PART ONE: {}", part_one(input));
 }
