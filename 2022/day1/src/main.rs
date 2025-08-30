@@ -1,18 +1,10 @@
-use std::ops::AddAssign;
-
 fn solve_puzzle(input: &str) -> Vec<u32> {
-    let mut temp_total = 0;
-    let mut totals = vec![];
-    for line in input.lines() {
-        if let Ok(num) = line.parse::<u32>() {
-            temp_total.add_assign(num);
-        } else {
-            totals.push(temp_total);
-            temp_total = 0;
-        }
-    }
-    totals.push(temp_total);
-    totals.sort_by(|a, b| b.cmp(a));
+    let mut totals: Vec<u32> = input
+        .split("\n\n")
+        .map(|group| group.lines().filter_map(|l| l.parse::<u32>().ok()).sum())
+        .collect();
+
+    totals.sort_unstable_by(|a, b| b.cmp(a));
     totals
 }
 
