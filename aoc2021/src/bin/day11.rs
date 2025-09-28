@@ -59,7 +59,22 @@ fn make_grid(input: &str) -> Vec<Vec<Jellyfish>> {
         .collect()
 }
 
-fn flash(grid: &mut [Vec<Jellyfish>], flash_count: &mut u32, p: Point) {
+fn flash(
+    grid: &mut [Vec<Jellyfish>],
+    flash_count: &mut u32,
+    p: Point,
+    sync_count: &mut u32,
+    step_count: &u32,
+) {
+    const MAX_FLASH: usize = 99;
+    let s_count: usize = grid
+        .iter()
+        .map(|line| line.iter().filter(|jelly| jelly.flashed).count())
+        .sum();
+    if s_count == MAX_FLASH {
+        println!("SYNCRONIZED FLASH FOUND AT STEP -> {step_count}");
+    }
+
     if !p.in_bounds(grid) {
         return;
     }
@@ -71,6 +86,7 @@ fn flash(grid: &mut [Vec<Jellyfish>], flash_count: &mut u32, p: Point) {
     }
     cell.flashed = true;
     *flash_count += 1;
+    *sync_count += 1;
 
     for nb in p.neighbors() {
         if !nb.in_bounds(grid) {
@@ -81,7 +97,7 @@ fn flash(grid: &mut [Vec<Jellyfish>], flash_count: &mut u32, p: Point) {
         let adj = &mut grid[ny][nx];
         adj.power = adj.power.saturating_add(1);
         if adj.power > 9 && !adj.flashed {
-            flash(grid, flash_count, nb);
+            flash(grid, flash_count, nb, sync_count, step_count);
         }
     }
 }
@@ -89,8 +105,9 @@ fn flash(grid: &mut [Vec<Jellyfish>], flash_count: &mut u32, p: Point) {
 fn solve_puzzle(input: &str) -> u32 {
     let mut grid = make_grid(input);
     let mut flash_count = 0;
+    let mut sync_count = 0;
 
-    for _step in 0..100 {
+    for step in 1..=300 {
         for row in grid.iter_mut() {
             for cell in row.iter_mut() {
                 cell.power = cell.power.saturating_add(1);
@@ -106,11 +123,13 @@ fn solve_puzzle(input: &str) -> u32 {
                             x: x as isize,
                             y: y as isize,
                         };
-                        flash(&mut grid, &mut flash_count, p);
+                        flash(&mut grid, &mut flash_count, p, &mut sync_count, &step);
+                        sync_count = 0;
                         did_any = true;
                     }
                 }
             }
+
             if !did_any {
                 break;
             }
