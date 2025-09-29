@@ -22,8 +22,39 @@ fn remove_dups(grid: &mut Vec<Point>) -> Vec<Point> {
     temp
 }
 
+fn print_grid(grid: &[Point]) {
+    let mut max_x = 0;
+    let mut max_y = 0;
+    for p in grid {
+        if p.x > max_x {
+            max_x = p.x;
+        }
+        if p.y > max_y {
+            max_y = p.y;
+        }
+    }
+    let width = max_y + 1;
+    let height = max_x + 1;
+
+    // Initialize with '.'
+    let mut printable_grid: Vec<Vec<char>> = vec![vec!['_'; width]; height];
+
+    // Mark points
+    for p in grid {
+        // Should be safe if your points are within bounds
+        printable_grid[p.x][p.y] = '#';
+    }
+
+    println!("\n");
+    for row in &printable_grid {
+        for &c in row {
+            print!("{c} ");
+        }
+        println!();
+    }
+}
+
 fn solve_puzzle(input: &str) -> usize {
-    println!("{input}");
     let mut grid: Vec<Point> = Vec::new();
     let mut folds: Vec<FoldInfo> = Vec::new();
     for line in input.trim().lines() {
@@ -68,8 +99,7 @@ fn solve_puzzle(input: &str) -> usize {
     }
     let de_duped_grid = remove_dups(&mut grid);
 
-    println!("{de_duped_grid:#?}");
-    println!("{folds:#?}");
+    print_grid(&de_duped_grid);
     de_duped_grid.len()
 }
 
@@ -77,7 +107,7 @@ fn main() {
     match get_puzzle("inputs/13.txt") {
         Ok(input) => {
             let answer = solve_puzzle(input.as_str());
-            println!("ANSWER TO PART ONE: {answer}");
+            println!("\n\nANSWER TO PART ONE: {answer}");
         }
 
         Err(e) => {
