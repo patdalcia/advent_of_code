@@ -3,8 +3,6 @@ name = "aoc2021"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-
 [[bin]]
 name = "1"
 path = "src/bin/day1.rs"
@@ -44,3 +42,23 @@ path = "src/bin/day9.rs"
 [[bin]]
 name = "11"
 path = "src/bin/day11.rs"
+
+[[bin]]
+name = "12"
+path = "src/bin/day12.rs"
+
+[[bin]]
+name = "13"
+path = "src/bin/day13.rs"
+
+[[bin]]
+name = "14"
+path = "src/bin/day14.rs"
+
+[[bin]]
+name = "15"
+path = "src/bin/day15.rs"
+
+[[bin]]
+name = "17"
+path = "src/bin/day17.rs"
