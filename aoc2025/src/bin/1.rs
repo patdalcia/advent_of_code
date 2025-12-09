@@ -58,7 +58,7 @@ fn get_password(instructions: &Vec<(char, i32)>) -> i32 {
             zero_counter += 1;
         }
     }
-    println!("PART TWO: {part_two_zero_counter}");
+    println!("PART TWO: {}", part_two_zero_counter + zero_counter);
     zero_counter
 }
 
@@ -72,4 +72,3 @@ fn main() {
         Err(e) => eprint!("ERROR: {e}"),
     }
 }
-
