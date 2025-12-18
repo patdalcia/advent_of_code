@@ -4,10 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+indicatif = "0.18.3"
 
 [[bin]]
 name = "1"
 path = "src/bin/1.rs"
+
+[[bin]]
+name = "2"
+path = "src/bin/2.rs"
 
 [[bin]]
 name = "3"
